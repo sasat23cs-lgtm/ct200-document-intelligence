@@ -18,7 +18,7 @@ from pathlib import Path
 
 import httpx
 
-BASE_URL = "http://localhost:8000/api/v1"
+BASE_URL = "http://127.0.0.1:8000/api/v1"
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 
@@ -28,9 +28,13 @@ def step(title: str) -> None:
 
 def main() -> None:
     client = httpx.Client(base_url=BASE_URL, timeout=30.0)
+    print(client.base_url)
 
     step("1. Ingest CT-200 Manual v1")
     v1_text = (DATA_DIR / "ct200_manual.md").read_text()
+    
+    print("Base URL:", client.base_url)
+    print("Calling:", str(client.base_url) + "documents/ingest")
     r = client.post(
         "/documents/ingest",
         json={"document_name": "CT-200 Manual", "source_filename": "ct200_manual.md", "markdown_text": v1_text},
@@ -80,6 +84,9 @@ def main() -> None:
         "/documents/ingest",
         json={"document_name": "CT-200 Manual", "source_filename": "ct200_manual_v2.md", "markdown_text": v2_text},
     )
+
+    print("Status:", r.status_code)
+    ~print("Response:", r.text)
     r.raise_for_status()
     v2 = r.json()
     print(f"Created version {v2['version_number']} (id={v2['id']})")
